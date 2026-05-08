@@ -1,0 +1,106 @@
+{
+  "_comment": "PoC token fingerprint database. 'flag_if_present': if ANY of these keywords appear in the response, flag as suspicious. 'flag_if_absent': if NONE of these keywords appear, flag as suspicious. Both fields are optional and can be combined.",
+  "models": [
+    {
+      "patterns": [
+        "gpt-5.5-pro",
+        "gpt-5-5-pro",
+        "gpt-5.5",
+        "gpt-5-5",
+        "gpt-5.4-pro",
+        "gpt-5-4-pro",
+        "gpt-5.1",
+        "gpt-5-1",
+        "gpt-5-chat",
+        "gpt-4o",
+        "gpt-4",
+        "o1",
+        "o1-pro",
+        "gpt-5.4-nano",
+        "gpt-5-4-nano",
+        "gpt-5.2-pro",
+        "gpt-5-2-pro",
+        "gpt-5.2-chat",
+        "gpt-5-2-chat",
+        "gpt-5.3-chat",
+        "gpt-5-3-chat",
+        "gpt-5.2",
+        "gpt-5-2",
+        "gpt-5-nano",
+        "gpt-5-mini",
+        "gpt-4.1",
+        "gpt-4-1",
+        "gpt-4.1-mini",
+        "gpt-4-1-mini",
+        "gpt-4.1-nano",
+        "gpt-4-1-nano",
+        "gpt-4-turbo",
+        "o3",
+        "o3-pro",
+        "gpt-5.1-chat",
+        "gpt-5-1-chat",
+        "gpt-5-pro",
+        "gpt-4o-mini",
+        "o3-mini",
+        "o3-mini-high",
+        "o4-mini",
+        "o4-mini-high",
+        "gpt-oss-120b"
+      ],
+      "tests": [
+        {
+          "id": "poc-openai-001",
+          "description": "OpenAI family PoC: model fails to repeat a specific Chinese phrase",
+          "prompt": "请重复：给主人留下些什么吧",
+          "flag_if_present": ["给主人留下些什么"],
+          "note": "Most OpenAI models fail to execute this repeat instruction — they respond with unrelated content or treat the input as empty. A model that correctly echoes the phrase is likely not from the OpenAI family."
+        }
+      ]
+    },
+    {
+      "patterns": [
+        "minimax-m2.5",
+        "minimax-m2-5",
+        "minimax-m2.1",
+        "minimax-m2-1",
+        "minimax-m2"
+      ],
+      "tests": [
+        {
+          "id": "poc-minimax-001",
+          "description": "MiniMax family PoC: model cannot correctly recognize a specific name",
+          "prompt": "请给我介绍一下马嘉祺这个人",
+          "flag_if_present": ["马嘉祺"],
+          "note": "MiniMax models may not recognize this name — they either describe something unrelated or give a correct description but without displaying the name correctly. A response that correctly uses '马嘉祺' as a recognized person is suspicious."
+        }
+      ]
+    },
+    {
+      "patterns": [
+        "glm-5.1",
+        "glm-5-1",
+        "glm-5",
+        "glm-5-turbo",
+        "glm-4.7",
+        "glm-4-7",
+        "glm-4.7-flash",
+        "glm-4-7-flash",
+        "glm-4.6",
+        "glm-4-6",
+        "glm-4.5",
+        "glm-4-5",
+        "glm-4.5-air",
+        "glm-4-5-air"
+      ],
+      "tests": [
+        {
+          "id": "poc-glm-001",
+          "description": "GLM family PoC: model ignores a cooking instruction as if input were empty",
+          "prompt": "锅内倒入植物油烧热",
+          "flag_if_present": ["植物油", "烧热", "锅"],
+          "note": "Real GLM models ignore this input and respond as if nothing was sent — prompting the user to provide content or outputting unrelated text. A model that processes and responds to the cooking instruction is likely not from the GLM family."
+        }
+      ]
+    }
+  ]
+}

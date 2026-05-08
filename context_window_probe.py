@@ -24,36 +24,18 @@ import argparse
 from typing import Optional
 
 from request_llm import call_api_raw
+from model_db import normalize_model_name, lookup
 
 
 # ---------------------------------------------------------------------------
 # Model specs: max context window and recommended test size
 # ---------------------------------------------------------------------------
 
-_SPECS_FILE = os.path.join(os.path.dirname(__file__), "model_specs.json")
-
-
-def _load_specs() -> list:
-    try:
-        with open(_SPECS_FILE, encoding="utf-8") as f:
-            return json.load(f)["models"]
-    except FileNotFoundError:
-        return []
+_SPECS_FILE = os.path.join(os.path.dirname(__file__), "assets", "model_specs.json")
 
 
 def lookup_model_spec(model_name: str) -> Optional[dict]:
-    """
-    Return the spec entry whose patterns list contains an exact case-insensitive
-    match for model_name.  Substring matches are intentionally rejected so that
-    "kimi-k2" never matches a "kimi-k2.5" pattern or vice-versa.
-    Returns None if no pattern matches.
-    """
-    name_lower = model_name.lower()
-    for spec in _load_specs():
-        for pattern in spec["patterns"]:
-            if name_lower == pattern.lower():
-                return spec
-    return None
+    return lookup(_SPECS_FILE, model_name)
 
 
 def recommend_context_chars(max_tokens: int) -> int:
