@@ -38,7 +38,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 from typing import Optional
 
-from request_llm import call_api
+from request_llm import call_api_raw
+from model_db import lookup  # noqa: F401  (reserved for groundtruth DB lookup)
 
 
 # ---------------------------------------------------------------------------
@@ -123,9 +124,20 @@ def query_question(question: dict, client_cfg: dict, temperature: float) -> dict
     prompt = question["question"] + ANSWER_SUFFIX
     messages = [{"role": "user", "content": prompt}]
 
-    t0 = time.time()
-    content = call_api(messages, client_cfg, temperature)
-    latency = time.time() - t0
+    result = call_api_raw(messages, client_cfg, temperature, timeout=300)
+    content = result["content"]
+
+    # For OpenAI-compatible responses, prepend reasoning_content if present so
+    # length measurement reflects the full token cost and extraction has full context.
+    reasoning = ""
+    api_style = client_cfg.get("api_style", "openai").lower()
+    if api_style != "anthropic":
+        try:
+            reasoning = result["raw"]["choices"][0]["message"].get("reasoning_content") or ""
+        except (KeyError, IndexError, TypeError):
+            reasoning = ""
+
+    full_content = (reasoning + "\n\n" + content).strip() if reasoning else content
 
     extracted = extract_answer(content, question)
     correct = is_correct(extracted, question)
@@ -134,8 +146,8 @@ def query_question(question: dict, client_cfg: dict, temperature: float) -> dict
         "question_id": question.get("id", "unknown"),
         "question_type": question.get("type", "text"),
         "content": content,
-        "response_length": len(content),
-        "latency": round(latency, 2),
+        "response_length": len(full_content),
+        "latency": result["latency"],
         "extracted": extracted,
         "correct": correct,
     }
